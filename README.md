@@ -31,4 +31,41 @@ MultiRankDTA/
 │   ├── kiba_2test.csv
 └── README.md
 
+## 3. Requirements
+
+All experiments were conducted in a Conda environment named `pytorch` on our HPC cluster.
+
+The key dependencies are:
+
+- Python 3.9
+- PyTorch 2.5.1
+- PyTorch Geometric 2.6.1
+- RDKit 2022.9.5 (`rdkit-pypi`)
+- scikit-learn 1.5.2
+- pandas 2.2.3
+- SciPy 1.13.1
+- Biopython 1.85
+- tqdm 4.66.5
+- joblib 1.4.2
+
+A minimal installation example is:
+
+```bash
+# create and activate a new environment (you can choose any name)
+conda create -n multirankdta python=3.9
+conda activate multirankdta
+
+# install PyTorch (please choose the wheel matching your CUDA version)
+pip install "torch==2.5.1" "torchaudio" "torchvision"
+
+# install PyTorch Geometric and its dependencies
+pip install "torch-geometric==2.6.1"
+
+# chemistry & bioinformatics
+pip install "rdkit-pypi==2022.9.5" "biopython==1.85"
+
+# general ML & utilities
+pip install "scikit-learn==1.5.2" "pandas==2.2.3" "scipy==1.13.1"
+pip install "tqdm==4.66.5" "tensorboard_logger" "joblib==1.4.2"
+
 
