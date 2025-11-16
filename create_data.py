@@ -67,8 +67,7 @@ class ListwiseDataset(Dataset):
 
 
 def create_csv():
-    # datasets = ['davis', 'kiba', 'bindingdb']
-    datasets = ['davis', 'bindingdb']
+    datasets = ['davis', 'kiba']
     for dataset in datasets:
         fpath = '/public/home/hpc244711054/perl5/base/data/' + dataset + '/'
         train_fold = json.load(open(fpath + "folds/train_fold_setting1.txt"))
@@ -113,7 +112,7 @@ def create_csv():
 
 
 def create_data():
-    datasets = ['davis', 'kiba', 'bindingdbKi']
+    datasets = ['davis', 'kiba', 'bindingdb']
     for dataset in datasets:
         df = pd.read_csv('data/' + dataset + '_2train.csv')
         train_drugs, train_prots, train_Y = list(df['compound_iso_smiles']), list(df['target_sequence']), list(
