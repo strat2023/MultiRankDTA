@@ -124,7 +124,7 @@ data/
 
 ## 5. Training the Base Model (TransformerModel)
 
-The script code/trytaskduddavis.py trains the base TransformerModel on a single dataset
+The script code/trytaskdavis.py trains the base TransformerModel on a single dataset
 with pointwise / pairwise / listwise ranking heads and uncertainty-weighted loss.
 
 5.1 Basic usage
@@ -132,7 +132,7 @@ with pointwise / pairwise / listwise ranking heads and uncertainty-weighted loss
 cd code
 take the Davis for example
 ```text
-python trytaskduddavis.py \
+python trytaskdavis.py \
     --datasets davis \
     --device cuda:0 \
     --batch_size 64 \
@@ -237,8 +237,6 @@ Input: [shared_fc features] + [pseudo-label predictions from all source models]
 Targets: scaled real labels + scaled pseudo labels for each task
 
 Loss: uncertainty-weighted combination of Huber, pairwise, and ListNet
-
-Evaluate and log metrics:
 
 Per-task and averaged CI, Pearson, RMSE, R²
 
