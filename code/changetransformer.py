@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from common.graph import MPNNModel
+from graph import MPNNModel
 
 class TransformerModel(nn.Module):
     def __init__(self, n_output=1, embed_dim=128, graph_dim=70, esm_dim=1280, num_layers=2, dropout=0.2):
