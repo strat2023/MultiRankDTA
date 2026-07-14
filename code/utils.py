@@ -1,3 +1,4 @@
+
 import os
 import numpy as np
 from math import sqrt
@@ -6,6 +7,7 @@ from torch_geometric.data import InMemoryDataset
 from sklearn.metrics import mean_squared_error
 from torch_geometric import data as DATA
 import torch
+from ci import ci_fast
 
 class AverageMeter(object):
 
@@ -29,74 +31,87 @@ class AverageMeter(object):
         self.avg = self.sum / self.count
 
 
-# Pearson Correlation
+
 def pearson(y, f):
     rp = np.corrcoef(y, f)[0, 1]
     return rp
 
 def ci(y, f):
-    # 检查 y 和 f 的长度是否一致
-    if len(y) != len(f):
-        raise ValueError("The lengths of 'y' and 'f' must be the same.")
-    
-    ind = np.argsort(y)
-    
-    # 检查 ind 是否超出范围
-    if max(ind) >= len(f):
-        print("调试信息：f 长度为", len(f), "，ind 最大值为", max(ind))
-        raise IndexError("Index in 'ind' is out of bounds for 'f'")
+    return ci_fast(y, f)
 
-    y = y[ind]
-    f = f[ind]
-    
-    i = len(y) - 1
-    j = i - 1
-    z = 0.0
-    S = 0.0
-    while i > 0:
-        while j >= 0:
-            if y[i] > y[j]:
-                z = z + 1
-                u = f[i] - f[j]
-                if u > 0:
-                    S = S + 1
-                elif u == 0:
-                    S = S + 0.5
-            j = j - 1
-        i = i - 1
-        j = i - 1
 
-    if z == 0:
-        return 0
-    return S / z
-
-# Mean Squared Error (MSE)
 def mse(y, f):
     return mean_squared_error(y, f)
 
+
+def get_k(y_obs, y_pred):
+    y_obs = np.array(y_obs)
+    y_pred = np.array(y_pred)
+    down = sum(y_pred * y_pred)
+    if down == 0:
+        return 0.0
+    return sum(y_obs * y_pred) / float(down)
+
+
+def r_squared_error(y_obs, y_pred):
+    y_obs = np.array(y_obs)
+    y_pred = np.array(y_pred)
+    y_obs_mean = np.array([np.mean(y_obs) for _ in y_obs])
+    y_pred_mean = np.array([np.mean(y_pred) for _ in y_pred])
+
+    mult = sum((y_pred - y_pred_mean) * (y_obs - y_obs_mean))
+    mult = mult * mult
+
+    y_obs_sq = sum((y_obs - y_obs_mean) * (y_obs - y_obs_mean))
+    y_pred_sq = sum((y_pred - y_pred_mean) * (y_pred - y_pred_mean))
+    down = float(y_obs_sq * y_pred_sq)
+    if down == 0:
+        return 0.0
+    return mult / down
+
+
+def squared_error_zero(y_obs, y_pred):
+    k = get_k(y_obs, y_pred)
+
+    y_obs = np.array(y_obs)
+    y_pred = np.array(y_pred)
+    y_obs_mean = np.array([np.mean(y_obs) for _ in y_obs])
+    upp = sum((y_obs - (k * y_pred)) * (y_obs - (k * y_pred)))
+    down = sum((y_obs - y_obs_mean) * (y_obs - y_obs_mean))
+    if down == 0:
+        return 0.0
+    return 1 - (upp / float(down))
+
+
+def get_rm2(ys_orig, ys_line):
+    r2 = r_squared_error(ys_orig, ys_line)
+    r02 = squared_error_zero(ys_orig, ys_line)
+
+    return r2 * (1 - np.sqrt(np.absolute((r2 * r2) - (r02 * r02))))
+
 def top_overlap(y, f, top_k=10):
     top_k = min(top_k, len(y), len(f))
-    # 根据预测分数f对索引进行排序，获取前top_k个预测值的索引
+
     top_pred_indices = np.argsort(f)[::-1][:top_k]
-    
-    # 根据真实值y对索引进行排序，获取前top_k个真实值的索引
+
+
     top_true_indices = np.argsort(y)[::-1][:top_k]
 
-    # print(f"Top-{top_k} Predicted Indices: {top_pred_indices}")
-    # print(f"Top-{top_k} True Indices: {top_true_indices}")
-    
-    # 计算交集的大小，即预测值和真实值在前 top_k 的重叠情况
-    overlap = np.intersect1d(top_pred_indices, top_true_indices).size
-    # print(f"Top-{top_k} Overlap: {overlap / top_k}")
 
-    # 计算重叠度
+
+
+
+    overlap = np.intersect1d(top_pred_indices, top_true_indices).size
+
+
+
     return overlap / top_k
 
 def calculate_top_overlap(y, f):
 
-    #计算不同K值下的Top-K重叠度，确保最大K值为数据长度
 
-    # 动态计算数据的最大K值
+
+
     max_k = len(y)
 
     top1_overlap = top_overlap(y, f, top_k=1)
@@ -109,16 +124,16 @@ def calculate_top_overlap(y, f):
         "top_15_overlap": top_overlap(y, f, top_k=15)
     }
 
-# Normalized Discounted Cumulative Gain (NDCG)
+
 def dcg_score(y, f, k=10):
-    # 确保不超过y和f的长度
+
     k = min(len(y), k)
-    
+
     order = np.argsort(f)[::-1]
     gains = 2 ** y[order[:k]] - 1
     discounts = np.log2(np.arange(2, k + 2))
-    
-    # 防止除以0
+
+
     discounts = np.maximum(discounts, 1e-10)
     return np.sum(gains / discounts)
 
